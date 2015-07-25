@@ -12,7 +12,7 @@ class Controller{
 
     public function index()
     {
-        $this->Redirect(__DIR__.'/static/home.html',true);
+        require_once __DIR__.'/static/home.html';
     }
 
     public function getList()
@@ -38,7 +38,9 @@ class Controller{
     {
         $handle = $this->openFile('r');
 
-        return fread($handle,filesize(DATA_FILE)) AND fclose($handle);
+        echo fread($handle,filesize(DATA_FILE));
+
+        fclose($handle);
     }
 
     private function appendToFile($content)
@@ -47,19 +49,30 @@ class Controller{
 
         if(!fwrite($handle,$content))exit('write file failed');
 
+        fclose($handle);
+
         return true;
     }
 
-    private function Redirect($url, $permanent = false)
-    {
-        if (headers_sent() === false)
-        {
-            header('Location: ' . $url, true, ($permanent === true) ? 301 : 302);
-        }
-
-        exit();
-    }
 }
 
+$obj = new Controller();
+
+$method = isset($_GET['m']) ?   $_GET['m']  :   '';
+
+
+switch($method)
+{
+    case 'getList':
+        $obj->getList();
+        break;
+    case '':
+        $obj->index();
+        break;
+    case 'create':
+        $obj->create();
+        break;
+}
+exit;
 
 

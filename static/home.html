@@ -14,6 +14,136 @@
     <title>Document</title>
 </head>
 <body>
-    <h1>hello,world!</h1>
+    <h1>Message</h1>
+    <div class="media-list" id="RootNode">
+
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="myModalLabel">请输入内容</h4>
+                </div>
+                <div class="modal-body">
+                    <textarea id="content" cols="70" rows="4"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="btn">提交</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+
+        window.onload = function() {
+
+            /**
+             *加载所有留言和回复
+             */
+            $.ajax({
+                url:"http://localhost:8000/index.php",
+                type:"GET",
+                data:{m:"getList"},
+                async:true,
+                success:function(data,status)
+                {
+                    data = data + "]";
+                    data = eval(data);
+                    showJSON(data);
+                }
+            });
+            function showJSON(data)
+            {
+                var l = data.length;
+                for(var i=0;i <l;i++){
+                    if(data[i].parent_id == "-1"){
+                        //console.log(data[i].ip + "<br>");
+                        $('#RootNode').html("<div class='media'>"
+                                            +"<div class='media-left'>"
+                                            +"<button type='button' class='btn btn-primary btn-lg' data-toggle='modal' data-target='#myModal'  data-length='"+data.length+"' data-id='"+data[i].id+"' onclick='reply(this)'>"
+                                            +"点击回复"
+                                            +"</button>"
+                                            +"        </div>"
+                                            +"<div class='media-body' id='node"+data[i].id+"'>"
+                                            +"       用户：<span class='media-heading'>"+data[i].ip+"</span><br>"
+                                            +"       时间：<span>"+data[i].created_at+"</span><br>"
+                                            +"        <p>"+data[i].content+"</p>"
+                                            +"</div>"
+                                            +"</div>");
+
+                    }
+                    for(var j=0; j <l ;j++){
+                        if(data[j].parent_id == data[i].id){
+                            var parent = "#node"+i;
+                            $(parent).append("<div class='media'>"
+                                    +"        <div class='media-left'>"
+                                    +"<button type='button' class='btn btn-primary btn-lg' data-toggle='modal' data-target='#myModal'  data-length='"+data.length+"' data-id='"+data[j].id+"' onclick='reply(this)'>"
+                                    +"点击回复"
+                                    +"</button>"
+                                    +"        </div>"
+                                    +"        <div class='media-body' id='node"+data[j].id+"'>"
+                                    +"       用户：<span class='media-heading'>"+data[j].ip+"</span><br>"
+                                    +"       时间：<span>"+data[j].created_at+"</span><br>"
+                                    +"        <p>"+data[j].content+"</p>"
+                                    +"</div>"
+                                    +"</div>");
+                        }
+                    }
+                }
+            }
+        }
+        /**
+         * 获取ip地址，由于不会闭包，只能用全局变量了，哎
+         */
+        var url = 'http://chaxun.1616.net/s.php?type=ip&output=json&callback=?&_='+Math.random();
+        $.getJSON(url, function(data){
+            TEMP_IP = data.Ip;
+        });
+        /**
+         * 回复留言
+         */
+        function reply(link)
+        {
+            var id = $(link).data('length');
+            var parent_id = $(link).data('id');
+
+            /**
+             *获取时间
+             */
+            var myDate = new Date();
+            var time = myDate.toLocaleString();
+            var ip = $("#ip").val();
+            RECORD = {
+                "id"  :   id,
+                "parent_id" :   parent_id,
+                "ip"    : TEMP_IP,
+                "created_at"    : time
+            };
+        }
+
+        /**
+         * 获取content，并ajax提交
+         */
+        $("#btn").click(function(){
+            RECORD.content = $("#content").val();
+            var str = JSON.stringify(RECORD);
+            str = ",\n" + str;
+            $.ajax({
+                url:"http://localhost:8000/index.php?m=create",
+                type:"POST",
+                data:{data:str},
+                async:true,
+                success:function(data)
+                {
+                    alert(data);
+                }
+            })
+        })
+
+    </script>
 </body>
 </html>
