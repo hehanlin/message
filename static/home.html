@@ -15,6 +15,7 @@
 </head>
 <body>
     <h1>Message</h1>
+    <input type="hidden" id="getLength1">
     <div class="media-list" id="RootNode">
 
     </div>
@@ -32,7 +33,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" id="btn">提交</button>
+                    <button type="button" class="btn btn-primary" data-dismiss="modal" id="btn">提交</button>
                 </div>
             </div>
         </div>
@@ -40,58 +41,64 @@
     <script type="text/javascript">
 
         window.onload = function() {
-
-            /**
-             *加载所有留言和回复
-             */
-            $.ajax({
-                url:"http://localhost:8000/index.php",
-                type:"GET",
-                data:{m:"getList"},
-                async:true,
-                success:function(data,status)
-                {
-                    data = data + "]";
-                    data = eval(data);
-                    showJSON(data);
-                }
-            });
-            function showJSON(data)
+            index();
+        }
+        /**
+         *加载所有留言和回复
+         */
+        function index(){$.ajax({
+            url:"./index.php",
+            type:"GET",
+            data:{m:"getList"},
+            async:true,
+            success:function(data)
             {
-                var l = data.length;
-                for(var i=0;i <l;i++){
-                    if(data[i].parent_id == "-1"){
-                        //console.log(data[i].ip + "<br>");
-                        $('#RootNode').html("<div class='media'>"
-                                            +"<div class='media-left'>"
-                                            +"<button type='button' class='btn btn-primary btn-lg' data-toggle='modal' data-target='#myModal'  data-length='"+data.length+"' data-id='"+data[i].id+"' onclick='reply(this)'>"
-                                            +"点击回复"
-                                            +"</button>"
-                                            +"        </div>"
-                                            +"<div class='media-body' id='node"+data[i].id+"'>"
-                                            +"       用户：<span class='media-heading'>"+data[i].ip+"</span><br>"
-                                            +"       时间：<span>"+data[i].created_at+"</span><br>"
-                                            +"        <p>"+data[i].content+"</p>"
-                                            +"</div>"
-                                            +"</div>");
+                data = data + "]";
+                data = eval(data);
+                showJSON(data);
+            }
+        });}
+        function showJSON(data)
+        {
+            var l = data.length;
+            $("#RootNode").append(
+                    "<button type='button' class='btn btn-default btn-lg' data-toggle='modal' data-target='#myModal' data-id='-1' onclick='reply(this)'>"
+                    +"点击留言"
+                    +"</button>"
+            );
+            for(var i=0;i <l;i++){
+                if(data[i].parent_id == "-1"){
+                    //console.log(data[i].ip + "<br>");
+                    $('#RootNode').append(
+                            "<div class='media'>"
+                            +"<div class='media-left'>"
+                            +"<button type='button' class='btn btn-primary btn-lg' data-toggle='modal' data-target='#myModal' data-id='"+data[i].id+"' onclick='reply(this)'>"
+                            +"点击回复"
+                            +"</button>"
+                            +"        </div>"
+                            +"<div class='media-body' id='node"+data[i].id+"'>"
+                            +"       用户：<span class='media-heading'>"+data[i].ip+"</span><br>"
+                            +"       时间：<span>"+data[i].created_at+"</span><br>"
+                            +"        <p>"+data[i].content+"</p>"
+                            +"</div>"
+                            +"</div>");
 
-                    }
-                    for(var j=0; j <l ;j++){
-                        if(data[j].parent_id == data[i].id){
-                            var parent = "#node"+i;
-                            $(parent).append("<div class='media'>"
-                                    +"        <div class='media-left'>"
-                                    +"<button type='button' class='btn btn-primary btn-lg' data-toggle='modal' data-target='#myModal'  data-length='"+data.length+"' data-id='"+data[j].id+"' onclick='reply(this)'>"
-                                    +"点击回复"
-                                    +"</button>"
-                                    +"        </div>"
-                                    +"        <div class='media-body' id='node"+data[j].id+"'>"
-                                    +"       用户：<span class='media-heading'>"+data[j].ip+"</span><br>"
-                                    +"       时间：<span>"+data[j].created_at+"</span><br>"
-                                    +"        <p>"+data[j].content+"</p>"
-                                    +"</div>"
-                                    +"</div>");
-                        }
+                }
+                for(var j=0; j <l ;j++){
+                    if(data[j].parent_id == data[i].id){
+                        var parent = "#node"+i;
+                        $(parent).append("<div class='media'>"
+                                +"        <div class='media-left'>"
+                                +"<button type='button' class='btn btn-primary btn-lg' data-toggle='modal' data-target='#myModal'  data-length='"+data.length+"' data-id='"+data[j].id+"' onclick='reply(this)'>"
+                                +"点击回复"
+                                +"</button>"
+                                +"        </div>"
+                                +"        <div class='media-body' id='node"+data[j].id+"'>"
+                                +"       用户：<span class='media-heading'>"+data[j].ip+"</span><br>"
+                                +"       时间：<span>"+data[j].created_at+"</span><br>"
+                                +"        <p>"+data[j].content+"</p>"
+                                +"</div>"
+                                +"</div>");
                     }
                 }
             }
@@ -103,12 +110,14 @@
         $.getJSON(url, function(data){
             TEMP_IP = data.Ip;
         });
+
+
+
         /**
          * 回复留言
          */
         function reply(link)
         {
-            var id = $(link).data('length');
             var parent_id = $(link).data('id');
 
             /**
@@ -116,30 +125,49 @@
              */
             var myDate = new Date();
             var time = myDate.toLocaleString();
-            var ip = $("#ip").val();
             RECORD = {
-                "id"  :   id,
+                "id"    :   "",
                 "parent_id" :   parent_id,
                 "ip"    : TEMP_IP,
                 "created_at"    : time
             };
-        }
+
+            /**
+            * 获取现有条数
+            */
+
+            $.ajax(
+                    {
+                        url:"./index.php",
+                        data:{m:"getLineNum"},
+                        type:"get",
+                        async:true
+                    }).done(function(msg)
+                    {
+                        RECORD.id = msg;
+                    });
+            }
 
         /**
          * 获取content，并ajax提交
          */
         $("#btn").click(function(){
             RECORD.content = $("#content").val();
+            document.getElementById("content").value = "";
             var str = JSON.stringify(RECORD);
             str = ",\n" + str;
             $.ajax({
-                url:"http://localhost:8000/index.php?m=create",
+                url:"./index.php?m=create",
                 type:"POST",
                 data:{data:str},
                 async:true,
                 success:function(data)
                 {
-                    alert(data);
+                    if(data==1)
+                    {
+                        $("#RootNode").html("");
+                        index();
+                    }
                 }
             })
         })

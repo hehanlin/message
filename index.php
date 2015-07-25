@@ -24,7 +24,24 @@ class Controller{
     {
         $content = isset($_POST['data'])   ?   $_POST['data']    :   '';
 
-        echo $this->appendToFile($content)    ?   '1' :   '0';
+        echo $this->appendToFile($content)  ?   '1' :   '0';
+    }
+
+    public function getLineNum()
+    {
+        $handle = $this->openFile('r');
+
+        $count = 0;
+
+        while(fgets($handle))
+        {
+            $count++;
+        }
+
+        fclose($handle);
+
+        echo  $count;
+
     }
 
     private function openFile($openType)
@@ -72,6 +89,8 @@ switch($method)
     case 'create':
         $obj->create();
         break;
+    case 'getLineNum':
+        $obj->getLineNum();
 }
 exit;
 
