@@ -29,11 +29,13 @@
                     <h4 class="modal-title" id="myModalLabel">请输入内容</h4>
                 </div>
                 <div class="modal-body">
-                    <textarea id="content" cols="70" rows="4"></textarea>
+                    <textarea id="content" cols="70" rows="4"></textarea><br/>
+                    验证码：<input type="text" id="validateCode"/><img src="../lib/ValidateCode.php" alt="单击刷新验证码" onclick="this.src='../lib/ValidateCode.php?sj='+Math.random()"/>
+                    <span style="color:red" id="showError"></span>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary" data-dismiss="modal" id="btn">提交</button>
+                    <button type="button" class="btn btn-primary" id="btn">提交</button>
                 </div>
             </div>
         </div>
@@ -151,26 +153,61 @@
         /**
          * 获取content，并ajax提交
          */
+        var myflag=0;
         $("#btn").click(function(){
-            RECORD.content = $("#content").val();
-            document.getElementById("content").value = "";
-            var str = JSON.stringify(RECORD);
-            str = ",\n" + str;
-            $.ajax({
-                url:"./index.php?m=create",
-                type:"POST",
-                data:{data:str},
-                async:true,
-                success:function(data)
-                {
-                    if(data==1)
+
+            function validateCode()
+            {
+                var code = $("#validateCode").val();
+                $.ajax({
+                    url:"../index.php?m=compareCode",
+                    type:"get",
+                    async:false,
+                    data:{code:code},
+                    success:function(data)
                     {
-                        $("#RootNode").html("");
-                        index();
+                        myflag = data;
                     }
+                });
+
+                if(myflag == 0)
+                {
+                    return false;
                 }
-            })
-        })
+                return true;
+            }
+            if(!validateCode())
+            {
+                $("#showError").html("验证码错误！");
+                return false;
+            }
+            else
+            {
+                RECORD.content = $("#content").val();
+                document.getElementById("content").value = "";
+                var str = JSON.stringify(RECORD);
+                str = ",\n" + str;
+                $.ajax({
+                    url:"./index.php?m=create",
+                    type:"POST",
+                    data:{data:str},
+                    async:true,
+                    success:function(data)
+                    {
+                        if(data==1)
+                        {
+                            $("#RootNode").html("");
+                            index();
+                        }
+                    }
+                })
+            }
+        });
+
+        $("#validateCode").focus(function()
+        {
+            $("#showError").html("");
+        });
 
     </script>
 </body>

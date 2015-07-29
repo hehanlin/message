@@ -4,7 +4,7 @@
  * @author  hehanlin
  * @time    2015-7-24
  */
-
+session_start();
 define('DATA_FILE',__DIR__.'/data/data.txt');
 if(!file_exists(DATA_FILE))exit('data.txt is not exists!');
 
@@ -27,6 +27,20 @@ class Controller{
         echo $this->appendToFile($content)  ?   '1' :   '0';
     }
 
+    public function compareCode()
+    {
+        
+        $code = isset($_GET['code'])   ?   trim($_GET['code'])    :   '';
+
+        if(strtolower($code)==strtolower($_SESSION['code']))
+        {
+            echo "1";exit;
+        }else{
+            echo "0";exit;
+        }
+
+    }
+
     public function getLineNum()
     {
         $handle = $this->openFile('r');
@@ -40,8 +54,8 @@ class Controller{
 
         fclose($handle);
 
-        echo  $count;
 
+        echo $count;exit;
     }
 
     private function openFile($openType)
@@ -75,7 +89,7 @@ class Controller{
 
 $obj = new Controller();
 
-$method = isset($_GET['m']) ?   $_GET['m']  :   '';
+$method = isset($_GET['m']) ?   trim($_GET['m'])  :   '';
 
 
 switch($method)
@@ -91,6 +105,8 @@ switch($method)
         break;
     case 'getLineNum':
         $obj->getLineNum();
+    case 'compareCode':
+        $obj->compareCode();
 }
 exit;
 
